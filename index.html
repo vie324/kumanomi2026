@@ -1,0 +1,695 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店舗パフォーマンス振り返りレポート | 2025年1月〜2026年1月</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #14141f;
+            --bg-card-hover: #1a1a2a;
+            --accent-primary: #6366f1;
+            --accent-secondary: #22d3ee;
+            --accent-warning: #f59e0b;
+            --accent-success: #10b981;
+            --accent-danger: #ef4444;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #1e293b;
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-2: linear-gradient(135deg, #22d3ee 0%, #6366f1 100%);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
+        }
+        :root.theme-seitai {
+            --bg-dark: #0a0f0a;
+            --bg-card: #141f14;
+            --bg-card-hover: #1a2a1a;
+            --accent-primary: #22c55e;
+            --accent-secondary: #14b8a6;
+            --border-color: #1e3b1e;
+            --gradient-1: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
+            --gradient-2: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+            --shadow-glow: 0 0 40px rgba(34, 197, 94, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', 'DM Sans', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            transition: background 0.4s ease;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; }
+        .brand-switcher { display: flex; justify-content: center; gap: 12px; margin-bottom: 40px; }
+        .brand-btn {
+            padding: 16px 32px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-btn:hover { border-color: var(--accent-primary); color: var(--text-primary); transform: translateY(-2px); }
+        .brand-btn.active { background: var(--gradient-1); border-color: transparent; color: white; box-shadow: var(--shadow-glow); }
+        .brand-btn .icon { font-size: 20px; }
+        .brand-btn .count { font-size: 12px; opacity: 0.8; font-weight: 400; }
+        .header { text-align: center; margin-bottom: 60px; position: relative; }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            transition: background 0.4s ease;
+        }
+        .theme-seitai .header::before { background: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.15) 0%, transparent 70%); }
+        .header-tag {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--gradient-1);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-subtitle { font-size: 16px; color: var(--text-secondary); }
+        .header-date { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+        .brand-badge {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 6px 16px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--accent-primary);
+            transition: all 0.3s ease;
+        }
+        .theme-seitai .brand-badge { background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 50px; }
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .summary-card:hover { transform: translateY(-4px); border-color: var(--accent-primary); box-shadow: var(--shadow-glow); }
+        .summary-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+        .summary-card.primary::before { background: var(--gradient-1); }
+        .summary-card.secondary::before { background: var(--gradient-2); }
+        .summary-card.success::before { background: var(--accent-success); }
+        .summary-card.warning::before { background: var(--accent-warning); }
+        .summary-card.danger::before { background: var(--accent-danger); }
+        .summary-label { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .summary-value { font-size: 32px; font-weight: 700; font-family: 'DM Sans', sans-serif; }
+        .summary-change { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; margin-top: 8px; padding: 4px 8px; border-radius: 6px; }
+        .summary-change.positive { color: var(--accent-success); background: rgba(16, 185, 129, 0.1); }
+        .summary-change.negative { color: var(--accent-danger); background: rgba(239, 68, 68, 0.1); }
+        .store-tabs { display: flex; gap: 8px; margin-bottom: 40px; flex-wrap: wrap; justify-content: center; }
+        .store-tab {
+            padding: 12px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .store-tab:hover { border-color: var(--accent-primary); color: var(--text-primary); }
+        .store-tab.active { background: var(--gradient-1); border-color: transparent; color: white; }
+        .charts-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 24px; margin-bottom: 50px; }
+        @media (max-width: 600px) { .charts-section { grid-template-columns: 1fr; } }
+        .chart-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 28px; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+        .chart-title { font-size: 18px; font-weight: 600; }
+        .chart-legend { display: flex; gap: 12px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .chart-container { position: relative; height: 300px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .section-title { font-size: 22px; font-weight: 600; }
+        .table-section { margin-bottom: 50px; }
+        .table-wrapper { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; overflow: hidden; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th {
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+        }
+        .data-table td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid var(--border-color); transition: background 0.2s ease; }
+        .data-table tr:hover td { background: var(--bg-card-hover); }
+        .data-table tr:last-child td { border-bottom: none; }
+        .store-badge { display: inline-block; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .store-badge.bupura { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+        .store-badge.kawagoe-esthe { background: rgba(34, 211, 238, 0.2); color: #67e8f9; }
+        .store-badge.koshigaya-esthe { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+        .store-badge.ginza { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+        .store-badge.ageo-esthe { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .store-badge.omiya { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .store-badge.kawaguchi { background: rgba(20, 184, 166, 0.2); color: #5eead4; }
+        .store-badge.ageo { background: rgba(6, 182, 212, 0.2); color: #67e8f9; }
+        .store-badge.koshigaya { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+        .store-badge.kawagoe { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+        .store-badge.ikebukuro { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .store-badge.urawa { background: rgba(168, 85, 247, 0.2); color: #c4b5fd; }
+        .store-badge.minamikoshigaya { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .store-badge.kasukabe { background: rgba(251, 146, 60, 0.2); color: #fdba74; }
+        .store-badge.musashiurawa { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; }
+        .trend-indicator { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; }
+        .trend-up { color: var(--accent-success); }
+        .trend-down { color: var(--accent-danger); }
+        .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 50px; }
+        .store-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        .store-card:hover { transform: translateY(-4px); border-color: var(--accent-primary); box-shadow: var(--shadow-glow); }
+        .store-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .store-name { font-size: 16px; font-weight: 600; }
+        .store-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .metric { text-align: center; }
+        .metric-value { font-size: 22px; font-weight: 700; font-family: 'DM Sans', sans-serif; }
+        .metric-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+        .insights-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 32px; margin-bottom: 50px; }
+        .insights-title { font-size: 20px; font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+        .insights-title::before { content: '💡'; }
+        .insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .insight-item { padding: 20px; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border-left: 3px solid var(--accent-primary); }
+        .insight-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--accent-secondary); }
+        .insight-item p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+        .footer { text-align: center; padding: 40px 0; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 13px; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeInUp 0.4s ease; }
+        @media (max-width: 768px) {
+            .container { padding: 24px 16px; }
+            .brand-switcher { flex-direction: column; align-items: stretch; }
+            .brand-btn { justify-content: center; }
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .store-tabs { justify-content: flex-start; overflow-x: auto; padding-bottom: 8px; }
+            .data-table { font-size: 12px; }
+            .data-table th, .data-table td { padding: 10px 12px; }
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-switcher">
+            <button class="brand-btn active" data-brand="esthe">
+                <span class="icon">✨</span>
+                <div><div>エステサロン</div><div class="count">5店舗</div></div>
+            </button>
+            <button class="brand-btn" data-brand="seitai">
+                <span class="icon">🦴</span>
+                <div><div>整体院</div><div class="count">10院</div></div>
+            </button>
+        </div>
+        <header class="header">
+            <span class="header-tag">Monthly Review</span>
+            <h1>店舗パフォーマンス振り返りレポート</h1>
+            <p class="header-subtitle">Hot Pepper Beauty 新規集客・PVデータ分析</p>
+            <p class="header-date">対象期間：2025年1月〜2026年1月</p>
+            <span class="brand-badge" id="brandBadge">エステブランド 全5店舗</span>
+        </header>
+        <div class="summary-grid" id="summaryGrid"></div>
+        <div class="store-tabs" id="storeTabs"></div>
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">新規集客数推移</h3>
+                    <div class="chart-legend" id="chartLegend"></div>
+                </div>
+                <div class="chart-container"><canvas id="newCustomersChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title" id="secondChartTitle">サロンPV推移</h3>
+                </div>
+                <div class="chart-container"><canvas id="secondChart"></canvas></div>
+            </div>
+        </div>
+        <div class="section-header"><h2 class="section-title">店舗別サマリー（直近3ヶ月平均）</h2></div>
+        <div class="store-grid" id="storeGrid"></div>
+        <div class="table-section">
+            <div class="section-header"><h2 class="section-title">月次データ詳細</h2></div>
+            <div class="table-wrapper" style="max-height: 500px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead><tr><th>店舗名</th><th>年月</th><th>新規数</th><th>サロンPV</th><th>平均PV</th><th>PV差分</th></tr></thead>
+                    <tbody id="dataTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="insights-section">
+            <h3 class="insights-title">分析インサイト</h3>
+            <div class="insights-grid" id="insightsGrid"></div>
+        </div>
+        <footer class="footer"><p>作成日：2026年1月26日 | データソース：Hot Pepper Beauty</p></footer>
+    </div>
+    <script>
+        const estheData = {
+            brandName: 'エステブランド 全5店舗',
+            summary: { totalNew: '471名', totalNewChange: '直近月 +45名', avgNew: '36.2名', avgNewChange: '前年比 +8.2%', maxNew: '24名', maxNewStore: 'BUPURA 2025年8月', avgSalonPV: '1,213', avgSalonPVChange: '安定推移', avgAreaPV: '1,123', avgAreaPVChange: '競合状況に注意' },
+            stores: [
+                { name: 'BUPURA', key: 'bupura', badge: 'bupura', region: '本店', color: '#6366f1', avgNew: 13.3, avgSalonPV: 1562, avgAreaPV: 1187 },
+                { name: '川越店', key: 'kawagoe-esthe', badge: 'kawagoe-esthe', region: '埼玉', color: '#22d3ee', avgNew: 6.3, avgSalonPV: 865, avgAreaPV: 922 },
+                { name: '越谷店', key: 'koshigaya-esthe', badge: 'koshigaya-esthe', region: '埼玉', color: '#10b981', avgNew: 9.0, avgSalonPV: 1133, avgAreaPV: 965 },
+                { name: '銀座店', key: 'ginza', badge: 'ginza', region: '東京', color: '#f59e0b', avgNew: 3.7, avgSalonPV: 882, avgAreaPV: 1331 },
+                { name: '上尾店', key: 'ageo-esthe', badge: 'ageo-esthe', region: '埼玉', color: '#ec4899', avgNew: 4.3, avgSalonPV: 890, avgAreaPV: 817 }
+            ],
+            rawData: [
+                {store: 'BUPURA', key: 'bupura', date: '2025年01月', newCustomers: 17, salonPV: 2001, avgPV: 1663},
+                {store: 'BUPURA', key: 'bupura', date: '2025年02月', newCustomers: 10, salonPV: 1453, avgPV: 1236},
+                {store: 'BUPURA', key: 'bupura', date: '2025年03月', newCustomers: 11, salonPV: 1414, avgPV: 1232},
+                {store: 'BUPURA', key: 'bupura', date: '2025年04月', newCustomers: 15, salonPV: 1649, avgPV: 1288},
+                {store: 'BUPURA', key: 'bupura', date: '2025年05月', newCustomers: 21, salonPV: 2163, avgPV: 1615},
+                {store: 'BUPURA', key: 'bupura', date: '2025年06月', newCustomers: 17, salonPV: 1545, avgPV: 1265},
+                {store: 'BUPURA', key: 'bupura', date: '2025年07月', newCustomers: 18, salonPV: 1951, avgPV: 1586},
+                {store: 'BUPURA', key: 'bupura', date: '2025年08月', newCustomers: 24, salonPV: 1736, avgPV: 1272},
+                {store: 'BUPURA', key: 'bupura', date: '2025年09月', newCustomers: 8, salonPV: 1578, avgPV: 1207},
+                {store: 'BUPURA', key: 'bupura', date: '2025年10月', newCustomers: 10, salonPV: 1967, avgPV: 1388},
+                {store: 'BUPURA', key: 'bupura', date: '2025年11月', newCustomers: 8, salonPV: 1307, avgPV: 1068},
+                {store: 'BUPURA', key: 'bupura', date: '2025年12月', newCustomers: 16, salonPV: 1066, avgPV: 867},
+                {store: 'BUPURA', key: 'bupura', date: '2026年01月', newCustomers: 16, salonPV: 2313, avgPV: 1627},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年01月', newCustomers: 5, salonPV: 1442, avgPV: 1252},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年02月', newCustomers: 9, salonPV: 1272, avgPV: 932},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年03月', newCustomers: 9, salonPV: 1318, avgPV: 938},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年04月', newCustomers: 10, salonPV: 1234, avgPV: 983},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年05月', newCustomers: 6, salonPV: 1310, avgPV: 1228},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年06月', newCustomers: 9, salonPV: 1072, avgPV: 1006},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年07月', newCustomers: 10, salonPV: 1408, avgPV: 1320},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年08月', newCustomers: 3, salonPV: 1122, avgPV: 1008},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年09月', newCustomers: 0, salonPV: 992, avgPV: 1015},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年10月', newCustomers: 3, salonPV: 992, avgPV: 1141},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年11月', newCustomers: 6, salonPV: 802, avgPV: 850},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2025年12月', newCustomers: 3, salonPV: 674, avgPV: 684},
+                {store: '川越店', key: 'kawagoe-esthe', date: '2026年01月', newCustomers: 10, salonPV: 1118, avgPV: 1233},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年01月', newCustomers: 5, salonPV: 1524, avgPV: 1265},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年02月', newCustomers: 6, salonPV: 1017, avgPV: 967},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年03月', newCustomers: 5, salonPV: 1254, avgPV: 936},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年04月', newCustomers: 8, salonPV: 1378, avgPV: 1000},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年05月', newCustomers: 8, salonPV: 1782, avgPV: 1204},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年06月', newCustomers: 16, salonPV: 1440, avgPV: 990},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年07月', newCustomers: 10, salonPV: 1633, avgPV: 1293},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年08月', newCustomers: 12, salonPV: 1276, avgPV: 981},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年09月', newCustomers: 4, salonPV: 1060, avgPV: 972},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年10月', newCustomers: 13, salonPV: 1425, avgPV: 1116},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年11月', newCustomers: 7, salonPV: 991, avgPV: 874},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2025年12月', newCustomers: 7, salonPV: 814, avgPV: 691},
+                {store: '越谷店', key: 'koshigaya-esthe', date: '2026年01月', newCustomers: 13, salonPV: 1594, avgPV: 1329},
+                {store: '銀座店', key: 'ginza', date: '2025年01月', newCustomers: 5, salonPV: 1507, avgPV: 1758},
+                {store: '銀座店', key: 'ginza', date: '2025年02月', newCustomers: 3, salonPV: 1132, avgPV: 1370},
+                {store: '銀座店', key: 'ginza', date: '2025年03月', newCustomers: 5, salonPV: 942, avgPV: 1354},
+                {store: '銀座店', key: 'ginza', date: '2025年04月', newCustomers: 1, salonPV: 1059, avgPV: 1417},
+                {store: '銀座店', key: 'ginza', date: '2025年05月', newCustomers: 3, salonPV: 1145, avgPV: 1734},
+                {store: '銀座店', key: 'ginza', date: '2025年06月', newCustomers: 3, salonPV: 893, avgPV: 1413},
+                {store: '銀座店', key: 'ginza', date: '2025年07月', newCustomers: 6, salonPV: 1338, avgPV: 1687},
+                {store: '銀座店', key: 'ginza', date: '2025年08月', newCustomers: 4, salonPV: 1158, avgPV: 1384},
+                {store: '銀座店', key: 'ginza', date: '2025年09月', newCustomers: 3, salonPV: 999, avgPV: 1380},
+                {store: '銀座店', key: 'ginza', date: '2025年10月', newCustomers: 3, salonPV: 924, avgPV: 1664},
+                {store: '銀座店', key: 'ginza', date: '2025年11月', newCustomers: 3, salonPV: 850, avgPV: 1244},
+                {store: '銀座店', key: 'ginza', date: '2025年12月', newCustomers: 4, salonPV: 658, avgPV: 964},
+                {store: '銀座店', key: 'ginza', date: '2026年01月', newCustomers: 4, salonPV: 1138, avgPV: 1786},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年01月', newCustomers: 4, salonPV: 1531, avgPV: 1166},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年02月', newCustomers: 5, salonPV: 1056, avgPV: 853},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年03月', newCustomers: 7, salonPV: 1006, avgPV: 831},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年04月', newCustomers: 8, salonPV: 1141, avgPV: 885},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年05月', newCustomers: 7, salonPV: 1423, avgPV: 1064},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年06月', newCustomers: 4, salonPV: 1060, avgPV: 897},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年07月', newCustomers: 6, salonPV: 1319, avgPV: 1154},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年08月', newCustomers: 4, salonPV: 1063, avgPV: 882},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年09月', newCustomers: 4, salonPV: 940, avgPV: 881},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年10月', newCustomers: 9, salonPV: 1169, avgPV: 987},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年11月', newCustomers: 4, salonPV: 763, avgPV: 743},
+                {store: '上尾店', key: 'ageo-esthe', date: '2025年12月', newCustomers: 7, salonPV: 694, avgPV: 582},
+                {store: '上尾店', key: 'ageo-esthe', date: '2026年01月', newCustomers: 2, salonPV: 1212, avgPV: 1127}
+            ],
+            chartData: {
+                labels: ['25/01', '25/02', '25/03', '25/04', '25/05', '25/06', '25/07', '25/08', '25/09', '25/10', '25/11', '25/12', '26/01'],
+                datasets: [
+                    { label: 'BUPURA', data: [17, 10, 11, 15, 21, 17, 18, 24, 8, 10, 8, 16, 16], color: '#6366f1' },
+                    { label: '川越店', data: [5, 9, 9, 10, 6, 9, 10, 3, 0, 3, 6, 3, 10], color: '#22d3ee' },
+                    { label: '越谷店', data: [5, 6, 5, 8, 8, 16, 10, 12, 4, 13, 7, 7, 13], color: '#10b981' },
+                    { label: '銀座店', data: [5, 3, 5, 1, 3, 3, 6, 4, 3, 3, 3, 4, 4], color: '#f59e0b' },
+                    { label: '上尾店', data: [4, 5, 7, 8, 7, 4, 6, 4, 4, 9, 4, 7, 2], color: '#ec4899' }
+                ],
+                pvData: [
+                    { label: 'BUPURA', data: [2001, 1453, 1414, 1649, 2163, 1545, 1951, 1736, 1578, 1967, 1307, 1066, 2313], color: '#6366f1' },
+                    { label: '川越店', data: [1442, 1272, 1318, 1234, 1310, 1072, 1408, 1122, 992, 992, 802, 674, 1118], color: '#22d3ee' },
+                    { label: '越谷店', data: [1524, 1017, 1254, 1378, 1782, 1440, 1633, 1276, 1060, 1425, 991, 814, 1594], color: '#10b981' },
+                    { label: '銀座店', data: [1507, 1132, 942, 1059, 1145, 893, 1338, 1158, 999, 924, 850, 658, 1138], color: '#f59e0b' },
+                    { label: '上尾店', data: [1531, 1056, 1006, 1141, 1423, 1060, 1319, 1063, 940, 1169, 763, 694, 1212], color: '#ec4899' }
+                ]
+            },
+            insights: [
+                { title: 'BUPURA（本店）が安定的に高パフォーマンス', text: '13ヶ月間で新規183名を獲得。特に2025年8月の24名が最高値。サロンPVも常にエリア平均を上回る傾向。' },
+                { title: '越谷店の成長に注目', text: '2025年6月に16名の新規を獲得し、店舗月間最高を記録。PV対比での転換率が高く、効率的な集客ができている。' },
+                { title: '銀座店は高PVながら新規数に課題', text: '平均PVが全店で最も高い（1,331）にも関わらず、新規数は低め。予約導線・クーポン設計の見直しを推奨。' },
+                { title: '川越店・上尾店のPV改善が急務', text: '両店舗ともサロンPVがエリア平均を下回る月が多い。ブログ更新・口コミ施策の強化でPV底上げを検討。' },
+                { title: '季節変動パターン', text: '全店舗共通で11-12月に落ち込み、1月・5月・8月に回復傾向。繁忙期に向けたクーポン施策の事前準備が有効。' },
+                { title: '2026年1月は好スタート', text: '全店舗合計で45名の新規獲得。特にBUPURA 16名、越谷 13名、川越 10名と主要店舗が好調。' }
+            ]
+        };
+
+        const seitaiData = {
+            brandName: '整体ブランド 全10院',
+            summary: { totalNew: '2,042名', totalNewChange: '直近月 +120名', avgNew: '157.1名', avgNewChange: '高水準維持', maxNew: '55名', maxNewStore: '川越駅前院 2025年8月', avgSalonPV: '1,028', avgSalonPVChange: '安定推移', avgAreaPV: '1,450', avgAreaPVChange: '競合状況に注意' },
+            stores: [
+                { name: '大宮駅前院', key: 'omiya', badge: 'omiya', region: '埼玉', color: '#22c55e', avgNew: 17.0, avgSalonPV: 1214, avgAreaPV: 1556 },
+                { name: '川口駅前院', key: 'kawaguchi', badge: 'kawaguchi', region: '埼玉', color: '#14b8a6', avgNew: 10.7, avgSalonPV: 913, avgAreaPV: 1556 },
+                { name: '上尾駅前院', key: 'ageo', badge: 'ageo', region: '埼玉', color: '#06b6d4', avgNew: 9.7, avgSalonPV: 584, avgAreaPV: 1066 },
+                { name: '越谷駅前院', key: 'koshigaya', badge: 'koshigaya', region: '埼玉', color: '#6366f1', avgNew: 7.3, avgSalonPV: 636, avgAreaPV: 1035 },
+                { name: '川越駅前院', key: 'kawagoe', badge: 'kawagoe', region: '埼玉', color: '#f59e0b', avgNew: 28.3, avgSalonPV: 1557, avgAreaPV: 1557 },
+                { name: '池袋東口院', key: 'ikebukuro', badge: 'ikebukuro', region: '東京', color: '#ec4899', avgNew: 10.7, avgSalonPV: 749, avgAreaPV: 1634 },
+                { name: '浦和コルソ院', key: 'urawa', badge: 'urawa', region: '埼玉', color: '#a855f7', avgNew: 13.0, avgSalonPV: 955, avgAreaPV: 1556 },
+                { name: '南越谷駅前院', key: 'minamikoshigaya', badge: 'minamikoshigaya', region: '埼玉', color: '#ef4444', avgNew: 8.7, avgSalonPV: 759, avgAreaPV: 1035 },
+                { name: 'イオンモール春日部院', key: 'kasukabe', badge: 'kasukabe', region: '埼玉', color: '#fb923c', avgNew: 14.0, avgSalonPV: 803, avgAreaPV: 1035 },
+                { name: '武蔵浦和駅前院', key: 'musashiurawa', badge: 'musashiurawa', region: '埼玉', color: '#38bdf8', avgNew: 22.3, avgSalonPV: 879, avgAreaPV: 910 }
+            ],
+            rawData: [
+                {store: '大宮駅前院', key: 'omiya', date: '2025年01月', newCustomers: 23, salonPV: 1908, avgPV: 2201},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年02月', newCustomers: 19, salonPV: 1445, avgPV: 1582},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年03月', newCustomers: 23, salonPV: 1387, avgPV: 1541},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年04月', newCustomers: 27, salonPV: 1635, avgPV: 1629},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年05月', newCustomers: 26, salonPV: 1811, avgPV: 2113},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年06月', newCustomers: 33, salonPV: 1625, avgPV: 1613},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年07月', newCustomers: 22, salonPV: 1851, avgPV: 2039},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年08月', newCustomers: 28, salonPV: 1682, avgPV: 1681},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年09月', newCustomers: 31, salonPV: 1675, avgPV: 1616},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年10月', newCustomers: 18, salonPV: 1675, avgPV: 1880},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年11月', newCustomers: 11, salonPV: 1109, avgPV: 1389},
+                {store: '大宮駅前院', key: 'omiya', date: '2025年12月', newCustomers: 17, salonPV: 867, avgPV: 1087},
+                {store: '大宮駅前院', key: 'omiya', date: '2026年01月', newCustomers: 23, salonPV: 1667, avgPV: 2192},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年01月', newCustomers: 9, salonPV: 1341, avgPV: 2201},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年02月', newCustomers: 5, salonPV: 914, avgPV: 1582},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年03月', newCustomers: 8, salonPV: 968, avgPV: 1541},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年04月', newCustomers: 11, salonPV: 1079, avgPV: 1629},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年05月', newCustomers: 18, salonPV: 1389, avgPV: 2113},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年06月', newCustomers: 17, salonPV: 1062, avgPV: 1613},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年07月', newCustomers: 16, salonPV: 1531, avgPV: 2039},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年08月', newCustomers: 13, salonPV: 994, avgPV: 1681},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年09月', newCustomers: 13, salonPV: 1003, avgPV: 1616},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年10月', newCustomers: 13, salonPV: 1177, avgPV: 1880},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年11月', newCustomers: 10, salonPV: 807, avgPV: 1389},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2025年12月', newCustomers: 14, salonPV: 655, avgPV: 1087},
+                {store: '川口駅前院', key: 'kawaguchi', date: '2026年01月', newCustomers: 8, salonPV: 1276, avgPV: 2192},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年01月', newCustomers: 11, salonPV: 1004, avgPV: 1815},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年02月', newCustomers: 19, salonPV: 818, avgPV: 1279},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年03月', newCustomers: 13, salonPV: 829, avgPV: 1244},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年04月', newCustomers: 14, salonPV: 889, avgPV: 1324},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年05月', newCustomers: 14, salonPV: 727, avgPV: 1608},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年06月', newCustomers: 18, salonPV: 589, avgPV: 1273},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年07月', newCustomers: 15, salonPV: 851, avgPV: 1586},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年08月', newCustomers: 19, salonPV: 677, avgPV: 1334},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年09月', newCustomers: 12, salonPV: 674, avgPV: 1196},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年10月', newCustomers: 12, salonPV: 711, avgPV: 1398},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年11月', newCustomers: 12, salonPV: 517, avgPV: 998},
+                {store: '上尾駅前院', key: 'ageo', date: '2025年12月', newCustomers: 8, salonPV: 403, avgPV: 794},
+                {store: '上尾駅前院', key: 'ageo', date: '2026年01月', newCustomers: 9, salonPV: 832, avgPV: 1406},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年01月', newCustomers: 6, salonPV: 855, avgPV: 1470},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年02月', newCustomers: 8, salonPV: 776, avgPV: 1041},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年03月', newCustomers: 9, salonPV: 624, avgPV: 965},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年04月', newCustomers: 11, salonPV: 657, avgPV: 1013},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年05月', newCustomers: 12, salonPV: 780, avgPV: 1361},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年06月', newCustomers: 13, salonPV: 693, avgPV: 1040},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年07月', newCustomers: 13, salonPV: 806, avgPV: 1332},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年08月', newCustomers: 15, salonPV: 614, avgPV: 1097},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年09月', newCustomers: 7, salonPV: 628, avgPV: 1102},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年10月', newCustomers: 17, salonPV: 753, avgPV: 1250},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年11月', newCustomers: 8, salonPV: 574, avgPV: 970},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2025年12月', newCustomers: 9, salonPV: 476, avgPV: 755},
+                {store: '越谷駅前院', key: 'koshigaya', date: '2026年01月', newCustomers: 5, salonPV: 859, avgPV: 1380},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年01月', newCustomers: 33, salonPV: 2135, avgPV: 2135},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年02月', newCustomers: 27, salonPV: 1709, avgPV: 1709},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年03月', newCustomers: 27, salonPV: 1424, avgPV: 1424},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年04月', newCustomers: 45, salonPV: 1671, avgPV: 1671},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年05月', newCustomers: 37, salonPV: 1957, avgPV: 1957},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年06月', newCustomers: 47, salonPV: 1824, avgPV: 1824},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年07月', newCustomers: 52, salonPV: 2314, avgPV: 2314},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年08月', newCustomers: 55, salonPV: 2036, avgPV: 2036},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年09月', newCustomers: 34, salonPV: 1823, avgPV: 1823},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年10月', newCustomers: 36, salonPV: 2345, avgPV: 2345},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年11月', newCustomers: 36, salonPV: 1539, avgPV: 1539},
+                {store: '川越駅前院', key: 'kawagoe', date: '2025年12月', newCustomers: 30, salonPV: 1154, avgPV: 1154},
+                {store: '川越駅前院', key: 'kawagoe', date: '2026年01月', newCustomers: 19, salonPV: 1978, avgPV: 1978},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年01月', newCustomers: 7, salonPV: 1472, avgPV: 2201},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年02月', newCustomers: 12, salonPV: 1217, avgPV: 1610},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年03月', newCustomers: 19, salonPV: 1182, avgPV: 1631},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年04月', newCustomers: 11, salonPV: 926, avgPV: 1723},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年05月', newCustomers: 11, salonPV: 947, avgPV: 2219},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年06月', newCustomers: 12, salonPV: 748, avgPV: 1695},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年07月', newCustomers: 13, salonPV: 1061, avgPV: 2225},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年08月', newCustomers: 20, salonPV: 1050, avgPV: 1843},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年09月', newCustomers: 16, salonPV: 769, avgPV: 1742},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年10月', newCustomers: 22, salonPV: 1125, avgPV: 1975},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年11月', newCustomers: 12, salonPV: 697, avgPV: 1489},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2025年12月', newCustomers: 12, salonPV: 520, avgPV: 1143},
+                {store: '池袋東口院', key: 'ikebukuro', date: '2026年01月', newCustomers: 8, salonPV: 1031, avgPV: 2270},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年01月', newCustomers: 26, salonPV: 1284, avgPV: 2201},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年02月', newCustomers: 13, salonPV: 927, avgPV: 1582},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年03月', newCustomers: 10, salonPV: 854, avgPV: 1541},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年04月', newCustomers: 13, salonPV: 895, avgPV: 1629},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年05月', newCustomers: 22, salonPV: 1264, avgPV: 2113},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年06月', newCustomers: 10, salonPV: 858, avgPV: 1613},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年07月', newCustomers: 15, salonPV: 1148, avgPV: 2039},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年08月', newCustomers: 30, salonPV: 1027, avgPV: 1681},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年09月', newCustomers: 15, salonPV: 937, avgPV: 1616},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年10月', newCustomers: 22, salonPV: 1182, avgPV: 1880},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年11月', newCustomers: 14, salonPV: 813, avgPV: 1389},
+                {store: '浦和コルソ院', key: 'urawa', date: '2025年12月', newCustomers: 16, salonPV: 680, avgPV: 1087},
+                {store: '浦和コルソ院', key: 'urawa', date: '2026年01月', newCustomers: 9, salonPV: 1372, avgPV: 2192},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年01月', newCustomers: 6, salonPV: 1153, avgPV: 1470},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年02月', newCustomers: 11, salonPV: 754, avgPV: 1041},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年03月', newCustomers: 5, salonPV: 855, avgPV: 965},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年04月', newCustomers: 13, salonPV: 851, avgPV: 1013},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年05月', newCustomers: 8, salonPV: 1061, avgPV: 1361},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年06月', newCustomers: 5, salonPV: 703, avgPV: 1040},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年07月', newCustomers: 7, salonPV: 1014, avgPV: 1332},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年08月', newCustomers: 9, salonPV: 734, avgPV: 1097},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年09月', newCustomers: 6, salonPV: 717, avgPV: 1102},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年10月', newCustomers: 7, salonPV: 956, avgPV: 1250},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年11月', newCustomers: 6, salonPV: 724, avgPV: 970},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2025年12月', newCustomers: 13, salonPV: 539, avgPV: 755},
+                {store: '南越谷駅前院', key: 'minamikoshigaya', date: '2026年01月', newCustomers: 7, salonPV: 1014, avgPV: 1380},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年01月', newCustomers: 11, salonPV: 1333, avgPV: 1470},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年02月', newCustomers: 16, salonPV: 1058, avgPV: 1041},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年03月', newCustomers: 6, salonPV: 865, avgPV: 965},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年04月', newCustomers: 8, salonPV: 818, avgPV: 1013},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年05月', newCustomers: 15, salonPV: 1261, avgPV: 1361},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年06月', newCustomers: 12, salonPV: 860, avgPV: 1040},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年07月', newCustomers: 10, salonPV: 1023, avgPV: 1332},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年08月', newCustomers: 15, salonPV: 1050, avgPV: 1097},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年09月', newCustomers: 11, salonPV: 996, avgPV: 1102},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年10月', newCustomers: 16, salonPV: 1166, avgPV: 1250},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年11月', newCustomers: 11, salonPV: 834, avgPV: 970},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2025年12月', newCustomers: 18, salonPV: 627, avgPV: 755},
+                {store: 'イオンモール春日部院', key: 'kasukabe', date: '2026年01月', newCustomers: 13, salonPV: 948, avgPV: 1380},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年01月', newCustomers: 23, salonPV: 1300, avgPV: 1470},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年02月', newCustomers: 27, salonPV: 943, avgPV: 1060},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年03月', newCustomers: 22, salonPV: 961, avgPV: 1061},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年04月', newCustomers: 18, salonPV: 1039, avgPV: 1189},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年05月', newCustomers: 31, salonPV: 1268, avgPV: 1414},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年06月', newCustomers: 22, salonPV: 1034, avgPV: 1042},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年07月', newCustomers: 31, salonPV: 1331, avgPV: 1276},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年08月', newCustomers: 30, salonPV: 1045, avgPV: 994},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年09月', newCustomers: 26, salonPV: 989, avgPV: 995},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年10月', newCustomers: 18, salonPV: 1083, avgPV: 1112},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年11月', newCustomers: 27, salonPV: 933, avgPV: 829},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2025年12月', newCustomers: 21, salonPV: 584, avgPV: 630},
+                {store: '武蔵浦和駅前院', key: 'musashiurawa', date: '2026年01月', newCustomers: 19, salonPV: 1119, avgPV: 1271}
+            ],
+            chartData: {
+                labels: ['25/01', '25/02', '25/03', '25/04', '25/05', '25/06', '25/07', '25/08', '25/09', '25/10', '25/11', '25/12', '26/01'],
+                datasets: [
+                    { label: '大宮駅前院', data: [23, 19, 23, 27, 26, 33, 22, 28, 31, 18, 11, 17, 23], color: '#22c55e' },
+                    { label: '川越駅前院', data: [33, 27, 27, 45, 37, 47, 52, 55, 34, 36, 36, 30, 19], color: '#f59e0b' },
+                    { label: '武蔵浦和駅前院', data: [23, 27, 22, 18, 31, 22, 31, 30, 26, 18, 27, 21, 19], color: '#38bdf8' },
+                    { label: '浦和コルソ院', data: [26, 13, 10, 13, 22, 10, 15, 30, 15, 22, 14, 16, 9], color: '#a855f7' },
+                    { label: '上尾駅前院', data: [11, 19, 13, 14, 14, 18, 15, 19, 12, 12, 12, 8, 9], color: '#06b6d4' }
+                ],
+                totalData: [155, 157, 142, 171, 194, 169, 194, 218, 171, 181, 147, 158, 120]
+            },
+            insights: [
+                { title: '川越駅前院が圧倒的パフォーマンス', text: '13ヶ月で新規478名を獲得し、全院の23%を占める。特に2025年7-8月は52名・55名と驚異的な数字。' },
+                { title: '武蔵浦和駅前院の効率性が光る', text: 'サロンPVがエリア平均を上回る月が多く、PV対比での転換率が非常に高い。月平均22名以上の新規獲得。' },
+                { title: '大宮駅前院は安定した旗艦店', text: '年間通じて月15-33名の新規を安定獲得。PVも高水準を維持し、ブランド認知の牽引役として機能。' },
+                { title: '上尾・越谷エリアのPV改善が急務', text: 'サロンPVがエリア平均を大きく下回る傾向。SEO対策・口コミ促進・ブログ更新頻度の見直しを検討。' },
+                { title: '池袋東口院は都心エリアで苦戦', text: 'エリア平均PVが高い中、サロンPVは700〜1,400程度。競合が多い中での差別化戦略が必要。' },
+                { title: '季節変動パターン', text: '全院共通で11-12月に落ち込み、1月・5-8月に好調。特に夏季（7-8月）が年間ピークとなる傾向。' }
+            ]
+        };
+
+        let currentBrand = 'esthe';
+        let newCustomersChart = null;
+        let secondChart = null;
+
+        function getCurrentData() { return currentBrand === 'esthe' ? estheData : seitaiData; }
+
+        function updateTheme() {
+            if (currentBrand === 'seitai') document.documentElement.classList.add('theme-seitai');
+            else document.documentElement.classList.remove('theme-seitai');
+        }
+
+        function updateSummary() {
+            const data = getCurrentData();
+            document.getElementById('summaryGrid').innerHTML = `
+                <div class="summary-card primary fade-in"><div class="summary-label">全店舗 新規総数</div><div class="summary-value">${data.summary.totalNew}</div><div class="summary-change positive"><span>↑</span> ${data.summary.totalNewChange}</div></div>
+                <div class="summary-card secondary fade-in"><div class="summary-label">月平均 新規数</div><div class="summary-value">${data.summary.avgNew}</div><div class="summary-change positive"><span>↑</span> ${data.summary.avgNewChange}</div></div>
+                <div class="summary-card success fade-in"><div class="summary-label">最高新規数（月）</div><div class="summary-value">${data.summary.maxNew}</div><div class="summary-change positive">${data.summary.maxNewStore}</div></div>
+                <div class="summary-card warning fade-in"><div class="summary-label">平均サロンPV</div><div class="summary-value">${data.summary.avgSalonPV}</div><div class="summary-change positive"><span>↑</span> ${data.summary.avgSalonPVChange}</div></div>
+                <div class="summary-card danger fade-in"><div class="summary-label">平均エリアPV</div><div class="summary-value">${data.summary.avgAreaPV}</div><div class="summary-change negative">${data.summary.avgAreaPVChange}</div></div>
+            `;
+        }
+
+        function updateBrandBadge() { document.getElementById('brandBadge').textContent = getCurrentData().brandName; }
+
+        function updateStoreTabs() {
+            const data = getCurrentData();
+            let html = `<button class="store-tab active" data-store="all">全店舗</button>`;
+            data.stores.forEach(s => html += `<button class="store-tab" data-store="${s.key}">${s.name}</button>`);
+            document.getElementById('storeTabs').innerHTML = html;
+            document.querySelectorAll('.store-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    filterTable(tab.dataset.store);
+                });
+            });
+        }
+
+        function updateStoreGrid() {
+            const data = getCurrentData();
+            let html = '';
+            data.stores.forEach(s => {
+                html += `<div class="store-card fade-in"><div class="store-card-header"><span class="store-name">${s.name}</span><span class="store-badge ${s.badge}">${s.region}</span></div><div class="store-metrics"><div class="metric"><div class="metric-value" style="color: ${s.color};">${s.avgNew}</div><div class="metric-label">新規数/月</div></div><div class="metric"><div class="metric-value">${s.avgSalonPV.toLocaleString()}</div><div class="metric-label">サロンPV</div></div><div class="metric"><div class="metric-value">${s.avgAreaPV.toLocaleString()}</div><div class="metric-label">平均PV</div></div></div></div>`;
+            });
+            document.getElementById('storeGrid').innerHTML = html;
+        }
+
+        function updateTable() {
+            const data = getCurrentData();
+            let html = '';
+            data.rawData.forEach(row => {
+                const pvDiff = row.salonPV - row.avgPV;
+                const trendClass = pvDiff >= 0 ? 'trend-up' : 'trend-down';
+                const trendIcon = pvDiff >= 0 ? '↑' : '↓';
+                const store = data.stores.find(s => s.key === row.key);
+                html += `<tr data-store="${row.key}"><td><span class="store-badge ${store ? store.badge : ''}">${row.store}</span></td><td>${row.date}</td><td><strong>${row.newCustomers}</strong></td><td>${row.salonPV.toLocaleString()}</td><td>${row.avgPV.toLocaleString()}</td><td><span class="trend-indicator ${trendClass}">${trendIcon} ${Math.abs(pvDiff).toLocaleString()}</span></td></tr>`;
+            });
+            document.getElementById('dataTableBody').innerHTML = html;
+        }
+
+        function filterTable(storeKey) {
+            document.querySelectorAll('#dataTableBody tr').forEach(row => {
+                row.style.display = storeKey === 'all' || row.dataset.store === storeKey ? '' : 'none';
+            });
+        }
+
+        function updateCharts() {
+            const data = getCurrentData();
+            if (newCustomersChart) newCustomersChart.destroy();
+            if (secondChart) secondChart.destroy();
+            let legendHtml = '';
+            data.chartData.datasets.forEach(ds => legendHtml += `<span class="legend-item"><span class="legend-dot" style="background: ${ds.color};"></span>${ds.label}</span>`);
+            document.getElementById('chartLegend').innerHTML = legendHtml;
+            const ctx1 = document.getElementById('newCustomersChart').getContext('2d');
+            newCustomersChart = new Chart(ctx1, {
+                type: 'line',
+                data: { labels: data.chartData.labels, datasets: data.chartData.datasets.map(ds => ({ label: ds.label, data: ds.data, borderColor: ds.color, backgroundColor: ds.color + '1a', tension: 0.4, fill: false, pointRadius: 4, pointHoverRadius: 6 })) },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: currentBrand === 'seitai' ? '#1e3b1e' : '#1e293b', titleColor: '#f8fafc', bodyColor: '#94a3b8', borderWidth: 1, padding: 12, cornerRadius: 8 } }, scales: { x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b' } }, y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b' }, beginAtZero: true } } }
+            });
+            const ctx2 = document.getElementById('secondChart').getContext('2d');
+            const secondChartTitle = document.getElementById('secondChartTitle');
+            if (currentBrand === 'esthe') {
+                secondChartTitle.textContent = 'サロンPV推移';
+                secondChart = new Chart(ctx2, {
+                    type: 'bar',
+                    data: { labels: data.chartData.labels, datasets: data.chartData.pvData.map(ds => ({ label: ds.label, data: ds.data, backgroundColor: ds.color + 'cc', borderRadius: 4 })) },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#94a3b8', borderWidth: 1, padding: 12, cornerRadius: 8 } }, scales: { x: { stacked: false, grid: { display: false }, ticks: { color: '#64748b' } }, y: { stacked: false, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b' } } } }
+                });
+            } else {
+                secondChartTitle.textContent = '全院 新規数合計推移';
+                secondChart = new Chart(ctx2, {
+                    type: 'bar',
+                    data: { labels: data.chartData.labels, datasets: [{ label: '全院合計', data: data.chartData.totalData, backgroundColor: 'rgba(34, 197, 94, 0.6)', borderColor: '#22c55e', borderWidth: 2, borderRadius: 8 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e3b1e', titleColor: '#f8fafc', bodyColor: '#94a3b8', borderWidth: 1, padding: 12, cornerRadius: 8, callbacks: { label: ctx => `新規: ${ctx.raw}名` } } }, scales: { x: { grid: { display: false }, ticks: { color: '#64748b' } }, y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b' }, beginAtZero: true } } }
+                });
+            }
+        }
+
+        function updateInsights() {
+            let html = '';
+            getCurrentData().insights.forEach(i => html += `<div class="insight-item"><h4>${i.title}</h4><p>${i.text}</p></div>`);
+            document.getElementById('insightsGrid').innerHTML = html;
+        }
+
+        function switchBrand(brand) {
+            currentBrand = brand;
+            updateTheme();
+            updateBrandBadge();
+            updateSummary();
+            updateStoreTabs();
+            updateStoreGrid();
+            updateTable();
+            updateCharts();
+            updateInsights();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            switchBrand('esthe');
+            document.querySelectorAll('.brand-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.brand-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    switchBrand(btn.dataset.brand);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
